@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ name }} 的票券記錄</title>
+    <style>
+        body {
+            font-family: "Microsoft JhengHei", sans-serif;
+            background: #f7f7f7;
+            padding: 30px;
+            margin: 0;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 30px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .back-btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .back-btn:hover {
+            background: #0056b3;
+        }
+        .table-wrapper {
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            min-width: 700px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+            color: #495057;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        .preview-btn {
+            padding: 6px 12px;
+            background: #28a745;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 14px;
+            margin-bottom: 4px;
+            display: inline-block;
+        }
+        .preview-btn:hover {
+            background: #218838;
+        }
+        .no-tickets {
+            text-align: center;
+            padding: 50px;
+            color: #666;
+            font-size: 18px;
+        }
+        .ticket-count {
+            text-align: center;
+            color: #666;
+            margin-bottom: 20px;
+        }
+        @media (max-width: 700px) {
+            .container { padding: 10px; }
+            h1 { font-size: 1.2em; }
+            .back-btn { width: 100%; margin-bottom: 10px; }
+            .table-wrapper { margin: 0 -10px; }
+            table { font-size: 13px; min-width: 500px; }
+            th, td { padding: 8px; }
+        }
+        @media (max-width: 500px) {
+            .container { padding: 2px; }
+            table { font-size: 11px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/" class="back-btn">← 返回首頁</a>
+        <h1>🎫 {% if name %}{{ name }}{% elif email %}{{ email }}{% else %}查詢票券{% endif %} 的票券記錄</h1>
+        {% if tickets is none %}
+        <form method="get" action="/my_tickets/" style="max-width:400px;margin:30px auto 0 auto;text-align:center;">
+            <label style="font-weight:bold;">請輸入姓名或 Email 查詢票券：</label><br>
+            <input type="text" name="name" placeholder="姓名" style="padding:8px;margin:8px 0;width:80%;border-radius:4px;border:1px solid #ccc;">
+            <div style="margin:8px 0;">或</div>
+            <input type="email" name="email" placeholder="Email" style="padding:8px;margin-bottom:8px;width:80%;border-radius:4px;border:1px solid #ccc;">
+            <br>
+            <button type="submit" class="preview-btn" style="background:#1976d2;">查詢票券</button>
+        </form>
+        {% else %}
+        <div class="ticket-count">
+            共找到 {{ tickets|length }} 張票券
+        </div>
+        {% if tickets %}
+        <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>票券 ID</th>
+                    <th>電影</th>
+                    <th>座位</th>
+                    <th>建立時間</th>
+                    <th>驗證狀態</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ticket in tickets %}
+                {% set my_ticket_count = (tickets|selectattr('owner_email', 'equalto', email)|list|length if email else 0) + (tickets|selectattr('name', 'equalto', name)|list|length if name else 0) %}
+                <tr>
+                    <td><strong>{{ ticket.id }}</strong></td>
+                    <td>{{ ticket.movie }}</td>
+                    <td>{{ ticket.seat }}</td>
+                    <td>{{ ticket.created_at }}</td>
+                    <td>
+                        {% if ticket.verified %}
+                        <span style="color: #28a745; font-weight: bold;">✅ 已驗證</span>
+                        {% else %}
+                        <span style="color: #dc3545;">❌ 未驗證</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="/preview_ticket/{{ ticket.id }}" class="preview-btn">📷 預覽票券</a>
+                        {% if not ticket.verified %}
+                        <a href="/verify_ticket/{{ ticket.id }}" class="preview-btn" style="background: #dc3545; margin-left: 5px;">🔍 驗票</a>
+                        {% else %}
+                        <span class="preview-btn" style="background: #6c757d; margin-left: 5px; cursor: not-allowed;">✅ 已驗證</span>
+                        {% endif %}
+                        {% if (email and ticket.owner_email == email) or (name and ticket.name == name) %}
+                          {% if my_ticket_count > 1 %}
+                            <button class="preview-btn" style="background:#ffc107;color:#333;margin-left:5px;" onclick="toggleTransferForm('{{ ticket.id }}')">✉️ 分票</button>
+                            <form method="post" action="/transfer_ticket/{{ ticket.id }}" class="transfer-form" id="transfer-{{ ticket.id }}" style="display:none;margin-top:8px;" onsubmit="return transferTicketAjax(event, '{{ ticket.id }}')">
+                              <input type="text" name="new_name" placeholder="受讓人姓名" required style="padding:4px 8px;border-radius:4px;border:1px solid #ccc;margin-bottom:4px;">
+                              <input type="email" name="new_email" placeholder="受讓人Email" required style="padding:4px 8px;border-radius:4px;border:1px solid #ccc;">
+                              <button type="submit" class="preview-btn" style="background:#1976d2;color:#fff;">確認分票</button>
+                              <span class="transfer-success" id="success-{{ ticket.id }}" style="display:none;color:#28a745;font-weight:bold;margin-left:8px;">分票成功！</span>
+                            </form>
+                          {% else %}
+                            <button class="preview-btn" style="background:#ccc;color:#888;margin-left:5px;cursor:not-allowed;" onclick="alert('僅剩一張票不可分票！')" disabled>✉️ 分票</button>
+                          {% endif %}
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        </div>
+        {% else %}
+        <div class="no-tickets">
+            <p>📭 目前沒有找到任何票券記錄</p>
+            <p>快去 <a href="/" style="color: #007bff;">首頁</a> 購買電影票吧！</p>
+        </div>
+        {% endif %}
+        {% endif %}
+    </div>
+    <script>
+    function toggleTransferForm(ticketId) {
+      var form = document.getElementById('transfer-' + ticketId);
+      if(form.style.display === 'none') {
+        form.style.display = '';
+      } else {
+        form.style.display = 'none';
+      }
+    }
+    async function transferTicketAjax(e, ticketId) {
+      e.preventDefault();
+      var form = document.getElementById('transfer-' + ticketId);
+      var formData = new FormData(form);
+      let resp = await fetch(form.action, {
+        method: 'POST',
+        body: formData
+      });
+      let text = await resp.text();
+      if (text.includes('分票成功')) {
+        document.getElementById('success-' + ticketId).style.display = '';
+        setTimeout(()=>{
+          form.style.display = 'none';
+          document.getElementById('success-' + ticketId).style.display = 'none';
+        }, 1500);
+      } else {
+        alert(text);
+      }
+      return false;
+    }
+    </script>
+</body>
+</html> 

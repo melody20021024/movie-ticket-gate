@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>編輯場次 - 管理員後台</title>
+  <style>
+    body { font-family: "Microsoft JhengHei", sans-serif; background: #f7f7f7; padding: 30px; }
+    .container { max-width: 500px; margin: 0 auto; background: #fff; border-radius: 10px; box-shadow: 1px 1px 8px rgba(0,0,0,0.08); padding: 24px; }
+    h1 { text-align: center; }
+    form { margin-top: 24px; }
+    label { display: block; margin-bottom: 6px; }
+    input, select { width: 100%; padding: 8px; margin-bottom: 16px; border: 1px solid #ccc; border-radius: 4px; }
+    .btn { padding: 8px 20px; background: #ffc107; color: #333; border-radius: 4px; border: none; font-size: 1em; cursor: pointer; }
+    .btn:hover { background: #e0a800; }
+    .back-link { margin-top: 24px; text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>✏️ 編輯場次</h1>
+    <form method="post">
+      <label>電影：</label>
+      <select name="movie_id" required>
+        {% for movie_id, m in movies.items() %}
+        <option value="{{ movie_id }}" {% if movie_id == showtime.movie_id %}selected{% endif %}>{{ m.title }}</option>
+        {% endfor %}
+      </select>
+      <label>時間：</label>
+      <input type="text" name="start_time" value="{{ showtime.start_time }}" required>
+      <label>影廳：</label>
+      <select name="screen" required>
+        <option value="1" {% if showtime.screen == 1 %}selected{% endif %}>1</option>
+        <option value="2" {% if showtime.screen == 2 %}selected{% endif %}>2</option>
+        <option value="3" {% if showtime.screen == 3 %}selected{% endif %}>3</option>
+      </select>
+      <label>座位數：</label>
+      <input type="number" name="seats" value="{{ showtime.seats }}" min="1" max="200" required>
+      <button type="submit" class="btn">儲存變更</button>
+    </form>
+    <div class="back-link">
+      <a href="/admin/showtimes" style="color:#004aad;">← 回場次管理</a>
+    </div>
+  </div>
+</body>
+</html> 

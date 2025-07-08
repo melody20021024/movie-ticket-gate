@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ movie['title'] }} - 電影詳情</title>
+  <style>
+    body { font-family: "Microsoft JhengHei", sans-serif; padding: 30px; background: #f7f7f7; }
+    .container { max-width: 700px; margin: 0 auto; background: #fff; border-radius: 10px; box-shadow: 1px 1px 8px rgba(0,0,0,0.08); padding: 24px; }
+    .movie-header { display: flex; gap: 24px; align-items: flex-start; }
+    .movie-header img { width: 180px; border-radius: 8px; }
+    .movie-info { flex: 1; }
+    h1 { margin-top: 0; }
+    .showtimes { margin-top: 32px; }
+    .showtime { border-bottom: 1px solid #eee; padding: 12px 0; display: flex; justify-content: space-between; align-items: center; }
+    .showtime:last-child { border-bottom: none; }
+    .btn { padding: 6px 16px; background: #004aad; color: white; border-radius: 4px; text-decoration: none; }
+    @media (max-width: 600px) {
+      .container { padding: 8px; }
+      .movie-header { flex-direction: column; align-items: center; }
+      .movie-header img { width: 90vw; max-width: 300px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="movie-header">
+      <img src="{{ url_for('static', filename=movie['poster'].replace('static/', '')) }}" alt="{{ movie['title'] }}">
+      <div class="movie-info">
+        <h1>{{ movie['title'] }}</h1>
+        <p>{{ movie['description'] }}</p>
+      </div>
+    </div>
+    <div class="showtimes" style="margin-top:32px;">
+      <h2>🎬 場次列表</h2>
+      {% set showtimes = get_showtimes_by_movie(movie_id) %}
+      {% if showtimes %}
+        {% for s in showtimes %}
+        <div class="showtime" style="border-bottom:1px solid #eee;padding:12px 0;display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <span>🕒 {{ s.start_time }}</span>
+            <span>｜影廳：{{ s.screen }}</span>
+            <span>｜座位數：{{ s.seats }}</span>
+            <span style="color:#1976d2;font-weight:bold;">｜剩餘票數：{{ get_showtime_remain(s.id) }}</span>
+          </div>
+          <a href="/buy/{{ movie_id }}?showtime_id={{ s.id }}" class="btn" style="padding:6px 16px;background:#004aad;color:white;border-radius:4px;text-decoration:none;">購票</a>
+        </div>
+        {% endfor %}
+      {% else %}
+        <p>目前尚無場次。</p>
+      {% endif %}
+    </div>
+    <div style="margin-top:32px;">
+      <a href="/" style="color:#004aad;">← 回首頁</a>
+    </div>
+  </div>
+</body>
+</html> 

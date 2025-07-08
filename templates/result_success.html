@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>驗票成功</title>
+  <style>
+    body { font-family: "Microsoft JhengHei", sans-serif; background: #eaffea; text-align: center; padding: 50px; }
+    h1 { color: green; }
+    .info { font-size: 20px; }
+  </style>
+</head>
+<body>
+  <h1>✅ 驗票成功！請通行</h1>
+  <div class="info">
+    <p>🎥 電影：{{ info.movie }}</p>
+    <p>🪑 座位：{{ info.seat }}</p>
+    <p>👤 姓名：{{ info.name }}</p>
+    <p>🎫 票券編號：{{ info.id }}</p>
+    {% if info.verified %}
+    <p style="color: #28a745; font-weight: bold;">✅ 此票券已驗證</p>
+    {% endif %}
+  </div>
+  <div style="margin-top: 30px;">
+    <a href="/" style="padding: 10px 20px; background: #007bff; color: white; text-decoration: none; border-radius: 5px; margin-right: 10px;">🏠 返回首頁</a>
+  </div>
+</body>
+</html>

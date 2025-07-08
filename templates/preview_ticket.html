@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>票券預覽</title>
+  <style>
+    body { font-family: "Microsoft JhengHei", sans-serif; text-align: center; background-color: #fdfdfd; padding: 50px; }
+    .ticket { display: inline-block; border: 2px dashed #aaa; padding: 20px; border-radius: 10px; background: #fff; }
+    img { width: 200px; max-width: 80vw; }
+    h2 { margin-top: 10px; }
+    .btn { display: inline-block; padding: 10px 20px; background: #007bff; color: #fff; border: none; border-radius: 6px; margin-top: 20px; font-size: 16px; cursor: pointer; text-decoration: none; }
+    .btn:hover { background: #0056b3; }
+    @media (max-width: 600px) {
+      body { padding: 10px; }
+      .ticket { padding: 10px; width: 98vw; }
+      h2 { font-size: 1.2em; }
+      .btn { width: 90vw; font-size: 1em; margin-top: 10px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="ticket">
+    <h2>🎟️ 電影票券</h2>
+    {% if ticket_ids %}
+      {% for ticket_id in ticket_ids %}
+        {% set seat = seats[loop.index0] %}
+        <div style="margin-bottom:32px;">
+          <img src="{{ url_for('static', filename=ticket_id + '.png') }}" alt="QR Code">
+          <div class="ticket-info">
+            <h2>票券資訊</h2>
+            <ul>
+              <li><strong>電影：</strong> {{ movie }}</li>
+              <li><strong>座位：</strong> {{ seat }}</li>
+              <li><strong>姓名：</strong> {{ name }}</li>
+              {% if showtime %}
+              <li><strong>場次：</strong> {{ showtime }}</li>
+              {% endif %}
+              <li><strong>票券編號：</strong> {{ ticket_id }}</li>
+            </ul>
+          </div>
+          <div style="margin-top: 20px;">
+            <a href="{{ url_for('my_tickets', name=name) }}" class="btn" style="background: #28a745; margin-right: 10px;">📁 查看我的票夾</a>
+            <a href="{{ url_for('verify_page', ticket_id=ticket_id) }}" class="btn" style="background: #dc3545;">🔍 驗票</a>
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <img src="{{ url_for('static', filename=qr_path) }}" alt="QR Code">
+      <div class="ticket-info">
+        <h2>票券資訊</h2>
+        <ul>
+          <li><strong>電影：</strong> {{ movie }}</li>
+          <li><strong>座位：</strong> {{ seat }}</li>
+          <li><strong>姓名：</strong> {{ name }}</li>
+          {% if showtime %}
+          <li><strong>場次：</strong> {{ showtime }}</li>
+          {% endif %}
+          <li><strong>票券編號：</strong> {{ ticket_id }}</li>
+        </ul>
+      </div>
+      <div style="margin-top: 20px;">
+        <a href="{{ url_for('my_tickets', name=name) }}" class="btn" style="background: #28a745; margin-right: 10px;">📁 查看我的票夾</a>
+        <a href="{{ url_for('verify_page', ticket_id=ticket_id) }}" class="btn" style="background: #dc3545;">🔍 驗票</a>
+      </div>
+    {% endif %}
+  </div>
+</body>
+</html>

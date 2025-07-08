@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理員後台 - 票券管理</title>
+    <style>
+        body {
+            font-family: "Microsoft JhengHei", sans-serif;
+            background: #f5f5f5;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 30px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 30px;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            flex: 1;
+            min-width: 120px;
+            margin-bottom: 10px;
+        }
+        .stat-card.verified {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+        .stat-card.unverified {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+        .back-btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .back-btn:hover {
+            background: #0056b3;
+        }
+        .table-wrapper {
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            min-width: 900px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+            color: #495057;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        .verify-btn {
+            padding: 6px 12px;
+            background: #28a745;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .verify-btn:hover {
+            background: #218838;
+        }
+        .verified-badge {
+            background: #28a745;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+        .unverified-badge {
+            background: #dc3545;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+        .email-cell {
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        @media (max-width: 900px) {
+            .container { padding: 10px; }
+            .stats { flex-direction: column; gap: 10px; }
+            .stat-card { font-size: 1em; }
+            table { font-size: 13px; min-width: 600px; }
+            th, td { padding: 8px; }
+        }
+        @media (max-width: 600px) {
+            .container { padding: 2px; }
+            h1 { font-size: 1.2em; }
+            .back-btn { width: 100%; margin-bottom: 10px; }
+            .stat-card { padding: 10px; font-size: 0.95em; }
+            table { font-size: 11px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+            <a href="/" class="back-btn">← 返回首頁</a>
+            <a href="/admin/logout" class="back-btn" style="background: #dc3545;" onclick="event.preventDefault(); window.location.href='/'">🚪 登出</a>
+        </div>
+        <h1>🔧 管理員後台 - 票券管理</h1>
+        <!-- 統計卡片 -->
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number">{{ total_tickets }}</div>
+                <div class="stat-label">總票券數</div>
+            </div>
+            <div class="stat-card verified">
+                <div class="stat-number">{{ verified_tickets }}</div>
+                <div class="stat-label">已驗票</div>
+            </div>
+            <div class="stat-card unverified">
+                <div class="stat-number">{{ unverified_tickets }}</div>
+                <div class="stat-label">未驗票</div>
+            </div>
+        </div>
+        <!-- 票券列表 -->
+        <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>票券 ID</th>
+                    <th>姓名</th>
+                    <th>電影</th>
+                    <th>座位</th>
+                    <th>Email</th>
+                    <th>建立時間</th>
+                    <th>驗票狀態</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ticket in tickets %}
+                <tr>
+                    <td><strong>{{ ticket.id }}</strong></td>
+                    <td>{{ ticket.name }}</td>
+                    <td>{{ ticket.movie }}</td>
+                    <td>{{ ticket.seat }}</td>
+                    <td class="email-cell" title="{{ ticket.email }}">{{ ticket.email }}</td>
+                    <td>{{ ticket.created_at }}</td>
+                    <td>
+                        {% if ticket.verified %}
+                        <span class="verified-badge">✅ 已驗票</span>
+                        {% else %}
+                        <span class="unverified-badge">❌ 未驗票</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if not ticket.verified %}
+                        <a href="{{ url_for('admin_verify_ticket', ticket_id=ticket.id) }}" 
+                           class="verify-btn" 
+                           onclick="return confirm('確認要驗證此票券嗎？')">
+                            驗票
+                        </a>
+                        {% else %}
+                        <span style="color: #28a745;">✓ 已驗證</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        </div>
+        {% if not tickets %}
+        <div style="text-align: center; padding: 50px; color: #666;">
+            <p>📭 目前沒有票券記錄</p>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html> 
